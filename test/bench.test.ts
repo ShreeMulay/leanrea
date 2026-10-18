@@ -251,16 +251,23 @@ describe("runCell with the fake runner", () => {
     const lines: string[] = [];
     const work = join(root, "nonexistent");
     await runCell(opts(work, { dryRun: true, runner: claudeCode, log: (l) => lines.push(l) }));
-    const plan = JSON.parse(lines.join("\n")) as { cmd: string; env_passed: string[]; requires_isolated: boolean };
+    const plan = JSON.parse(lines.join("\n")) as { cmd: string; env_passed: string[]; requires_isolated: boolean; real_run_disabled: boolean; note: string };
     assert.equal(plan.cmd, "claude");
     assert.equal(plan.requires_isolated, true);
+    assert.equal(plan.real_run_disabled, true);
+    assert.match(plan.note, /disabled.*issues\/2/);
     assert.ok(!plan.env_passed.includes("GITHUB_TOKEN"));
     assert.equal(existsSync(work), false);
   });
 
-  it("refuses real agents without --isolated, bad reps and missing targets", async () => {
+  it("refuses every real runner (issue #2), even with --isolated; bad reps and missing targets", async () => {
     const work = setupWork();
-    await assert.rejects(runCell(opts(work, { runner: claudeCode })), /--isolated/);
+    for (const runner of [claudeCode, opencode]) {
+      for (const isolated of [false, true]) {
+        await assert.rejects(runCell(opts(work, { runner, isolated, model: "anthropic/x" })), /disabled.*leanrea\/issues\/2/);
+      }
+    }
+    assert.equal(existsSync(join(work, "runs")), false, "a refused run must not create anything");
     await assert.rejects(runCell(opts(work, { rep: "../x" })), /rep must match/);
     await assert.rejects(runCell(opts(work, { taskId: "go" })), /target missing/);
     await assert.rejects(runCell(opts(work, { taskId: "nope" })), /unknown task/);
