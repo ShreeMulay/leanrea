@@ -1,4 +1,13 @@
+# build output
+dist/
+build/
+node_modules/
+*.tgz
+
+# bench work dirs (targets, runs, REA install)
 bench/work/
+bench/work-*/
 rea_tools.json
+
 .DS_Store
 __pycache__/

@@ -1,6 +1,13 @@
 [
  {
   "id": "electron",
+  "platform": "macos",
+  "targets": [
+   "app.asar",
+   "app.asar.unpacked",
+   "mac_utils.node",
+   "gh"
+  ],
   "prompt": "app.asar in this folder is the Notion desktop app (Electron). Find out how Notion detects that another app is using the microphone (meeting detection). Report: (1) the native module file and the native function(s) it calls, (2) the main-process class that drives detection and its two modes, (3) the IPC channel a renderer sends to START detection, (4) the IPC channel main broadcasts when the process list changes. Keep the answer short; cite file paths.",
   "key": {
    "native fn": "getRunningInputAudioProcesses",
@@ -12,6 +19,13 @@
  },
  {
   "id": "native",
+  "platform": "macos",
+  "targets": [
+   "app.asar",
+   "app.asar.unpacked",
+   "mac_utils.node",
+   "gh"
+  ],
   "prompt": "mac_utils.node in this folder is a macOS Node native addon from a desktop app. Report: (1) every JS-callable function name it exports, (2) exactly how checkAudioCaptureAccess decides the permission state (framework, function, service name), (3) how requestSingleInstanceLock works (mechanism and filesystem path). Keep the answer short.",
   "key": {
    "TCC fw": "TCC\\.framework|TCC framework",
@@ -26,6 +40,13 @@
  },
  {
   "id": "go",
+  "platform": "macos",
+  "targets": [
+   "app.asar",
+   "app.asar.unpacked",
+   "mac_utils.node",
+   "gh"
+  ],
   "prompt": "gh in this folder is a compiled binary. Without running it, report: the language/toolchain version it was built with, its main package path, and the exact versions of the dependencies github.com/cli/go-gh/v2 and golang.org/x/crypto. Keep the answer short.",
   "key": {
    "go ver": "go1\\.27\\.1",
@@ -36,6 +57,13 @@
  },
  {
   "id": "deep",
+  "platform": "macos",
+  "targets": [
+   "app.asar",
+   "app.asar.unpacked",
+   "mac_utils.node",
+   "gh"
+  ],
   "prompt": "mac_utils.node in this folder is a macOS Node native addon. Reverse engineer its single-instance lock (requestSingleInstanceLock) precisely from the binary: (1) the exact socket path format and what each variable part is computed from, (2) the wire protocol a second instance uses to send its data, (3) how the first instance authenticates the connecting peer. Keep the answer short.",
   "key": {
    "prefix": "/tmp/com\\.notion\\.singleinstance\\.",
@@ -46,6 +74,37 @@
    "len": "length[- ]prefix|4[- ]byte|uint32|size prefix|length header",
    "peer": "getpeereid",
    "json": "JSON"
+  }
+ },
+ {
+  "id": "linux-rust",
+  "platform": "linux",
+  "targets": [
+   "tsc"
+  ],
+  "prompt": "tsc in this folder is a compiled Linux binary. Without running it, report: (1) the programming language it was written in, (2) the exact compiler version and the full compiler commit hash it was built with, (3) the exact versions of the bundled crates bumpalo, flate2 and tikv-jemalloc-ctl. Keep the answer short.",
+  "key": {
+   "lang": "\\bRust\\b",
+   "rustc ver": "1\\.95\\.0",
+   "rustc commit": "59807616e1fa2540724bfbac14d7976d7e4a3860",
+   "bumpalo": "bumpalo[^0-9a-z]{0,8}v?3\\.20\\.3",
+   "flate2": "flate2[^0-9a-z]{0,8}v?1\\.1\\.10",
+   "jemalloc-ctl": "tikv-jemalloc-ctl[^0-9a-z]{0,8}v?0\\.7\\.0"
+  }
+ },
+ {
+  "id": "linux-elf",
+  "platform": "linux",
+  "targets": [
+   "tsc"
+  ],
+  "prompt": "tsc in this folder is a Linux executable. Without running it, report: (1) its ELF class and CPU architecture, (2) whether it is dynamically or statically linked and which shared libraries it needs, (3) which C library its Rust target links against, (4) its GNU build ID. Keep the answer short.",
+  "key": {
+   "class": "ELF ?64|64-bit",
+   "arch": "x86[-_ ]64|AMD64",
+   "static": "statically[- ]linked|static(ally)? (binary|executable|linked)",
+   "libc": "musl",
+   "build id": "b40b93b641f5e1cbbe90bd578bf7fe78d6677690"
   }
  }
 ]

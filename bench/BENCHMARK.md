@@ -1,3 +1,9 @@
+> **Upstream historical results.** Everything below is copied unchanged from
+> [aicodeking/leanrea@09ba4aa](https://github.com/aicodeking/leanrea/tree/09ba4aa0217f82cd880f855a60b877f59f39b22b/bench):
+> upstream's macOS arm64 runs with Claude Code and Sonnet 5.5, using the upstream skill.
+> This fork has not re-run them and makes no Linux performance claims. `run.py` mentioned
+> below was replaced by `bench/run.ts` in this fork; see [README.md](README.md) for the current harness.
+
 # REA vs a lean skill: benchmark (2026-10-16)
 
 Setup: Claude Code 2.1.301 headless (`claude -p`), Sonnet 5.5, macOS arm64. REA is rea-agents@6.5.0 (207 MCP tools, run as `rea --mcp`) plus its own skill (`/reverse-engineer-anything`). Every run starts in a fresh copy of the targets. Answers were graded by regex against answer keys I made by hand.
