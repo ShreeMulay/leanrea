@@ -1,6 +1,6 @@
 {
   "name": "leanrea",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Installer and printer for the leanrea reverse-engineering skill (Linux + macOS fork of aicodeking/leanrea).",
   "type": "module",
   "bin": {
@@ -10,10 +10,11 @@
     "dist/",
     "leanrea/SKILL.md",
     "LICENSE",
+    "NOTICE",
     "README.md"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12"
   },
   "license": "MIT",
   "repository": {
