@@ -5,8 +5,9 @@
  *        [--dry-run] [--isolated] [--timeout SEC] [--work DIR] [--model M] [--clean] [--pass-env NAME]...
  *
  * Arms: none | leanrea | rea. Work root: --work, $LEANREA_WORK, or bench/work.
- * Real agent runs require --isolated (or LEANREA_BENCH_ISOLATED=1): you confirm the
- * run happens in a disposable VM/container. See bench/README.md.
+ * Real agent runs (every runner except `fake`) are DISABLED until the bench is
+ * redesigned: https://github.com/ShreeMulay/leanrea/issues/2. --dry-run and the
+ * fake runner still work. See bench/README.md.
  */
 import { spawn } from "node:child_process";
 import {
@@ -32,6 +33,11 @@ import { BASE_ENV_ALLOWLIST, filterEnv, safeRemove, sanitize } from "./safety.js
 export const ANSWER_CAP = 64 * 1024;
 const STREAM_CAP = 16 * 1024 * 1024;
 const SAFE_NAME = /^[A-Za-z0-9_-]{1,40}$/;
+export const REDESIGN_ISSUE = "https://github.com/ShreeMulay/leanrea/issues/2";
+export const REAL_RUNS_DISABLED =
+  `real agent runs are disabled until the bench is redesigned (${REDESIGN_ISSUE}): the command allowlist blocks the ` +
+  "skill's own first-move commands, runs leak the real HOME/agent config, and --isolated is an honor flag, not isolation. " +
+  "--dry-run and the fake runner still work.";
 
 export interface CellOptions {
   arm: Arm;
@@ -199,6 +205,8 @@ export async function runCell(o: CellOptions): Promise<Row | null> {
           env_passed: Object.keys(env).sort(),
           timeout_s: o.timeoutSec,
           requires_isolated: o.runner.name !== "fake",
+          real_run_disabled: o.runner.name !== "fake",
+          note: o.runner.name !== "fake" ? REAL_RUNS_DISABLED : undefined,
         },
         null,
         1,
@@ -208,6 +216,10 @@ export async function runCell(o: CellOptions): Promise<Row | null> {
   }
 
   if (o.runner.name !== "fake") {
+    throw new Error(REAL_RUNS_DISABLED);
+  }
+  if (o.runner.name !== "fake") {
+    // Kept for the redesign (issue #2); unreachable while real runs are disabled.
     if (!o.isolated) {
       throw new Error("refusing a real agent run without --isolated: run inside a disposable VM/container, then pass --isolated");
     }
@@ -291,7 +303,8 @@ async function main(argv: string[]): Promise<number> {
     process.stdout.write(
       "usage: run.js <none|leanrea|rea> <task> <rep> [--runner claude-code|opencode|fake] [--dry-run] [--isolated]\n" +
         "              [--timeout SEC] [--work DIR] [--model M] [--clean] [--pass-env NAME]...\n" +
-        `tasks: ${loadTasks().map((t) => `${t.id} (${t.platform})`).join(", ")}\n`,
+        `tasks: ${loadTasks().map((t) => `${t.id} (${t.platform})`).join(", ")}\n` +
+        `note: ${REAL_RUNS_DISABLED}\n`,
     );
     return v.help ? 0 : 2;
   }

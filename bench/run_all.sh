@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Full benchmark on this platform's task set: arms side by side, REPS reps.
 # Requires `npm run build`, `./setup.sh <platform>`, and a disposable VM/container (pass --isolated).
+# NOTE: real agent runs are currently disabled in run.js (issue #2); only RUNNER=fake or --dry-run work.
 #   REPS=3 RUNNER=claude-code ./run_all.sh --isolated [extra run.js flags]
 # Appends rows to "$LEANREA_WORK/results/run.jsonl" (default bench/work).
 set -euo pipefail

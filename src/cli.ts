@@ -4,6 +4,7 @@ import { doctorReport } from "./doctor.js";
 import {
   AGENTS,
   type Agent,
+  consistencyCheck,
   destinationFor,
   type InstallEnv,
   installOne,
@@ -23,17 +24,22 @@ Commands:
 
 Install options:
   --agent <name>             opencode (default) | claude-code | codex | all
+                             (all writes the Claude Code and Codex dirs; OpenCode reads both)
   --global                   User-level skills dir (default)
   --project                  Skills dir under the current directory
   --dest <path>              Exact SKILL.md path (excludes --agent all, --global, --project)
   --dry-run                  Show what would happen; write nothing
-  --force                    Overwrite an existing different file
+  --force                    Overwrite an existing different file that is not a known release
+
+Existing copies of a known leanrea release are upgraded without --force. Other
+skills dirs the selected agents also read are checked: known older releases are
+upgraded, unknown copies get a warning on stderr and are left alone.
 
 Global options:
   -h, --help                 Show this help
   -v, --version              Show the version
 
-Exit codes: 0 ok, 1 install refused/failed, 2 usage error.
+Exit codes: 0 ok (warnings allowed), 1 a target was refused or failed, 2 usage error.
 `;
 
 class UsageError extends Error {}
@@ -119,26 +125,38 @@ function install(v: InstallFlags): number {
     path: process.env.PATH ?? "",
   };
   const scope: Scope = v.project ? "project" : "global";
+  // Readers to keep consistent; for "all", every agent.
   const agents: Agent[] = agentArg === "all" ? [...AGENTS] : [agentArg as Agent];
+  // OpenCode also reads ~/.claude/skills and ~/.agents/skills, so "all" writes only those two.
+  const writeFor: Agent[] = agentArg === "all" ? ["claude-code", "codex"] : agents;
   const targets: InstallTarget[] =
     v.dest !== undefined
       ? [{ label: "custom", dest: v.dest }]
-      : agents.map((a) => ({
+      : writeFor.map((a) => ({
           label: `${a} (${scope})`,
           dest: destinationFor(a, scope, env),
           containWithin: scope === "project" ? env.cwd : undefined,
         }));
 
   const data = readSkill();
+  const opts = { dryRun: !!v["dry-run"], force: !!v.force };
   let failed = false;
   for (const t of targets) {
-    const res = installOne(t, data, env, { dryRun: !!v["dry-run"], force: !!v.force });
+    const res = installOne(t, data, env, opts);
     const line = `${res.label}: ${res.status}: ${res.message}\n`;
     if (isFailure(res)) {
       failed = true;
       process.stderr.write(line);
     } else {
       process.stdout.write(line);
+    }
+  }
+  if (v.dest === undefined) {
+    const dests = targets.map((t) => t.dest);
+    for (const res of consistencyCheck(agents, scope, env, data, dests, opts)) {
+      const line = `${res.label}: ${res.status}: ${res.message}\n`;
+      if (res.status === "warning") process.stderr.write(line);
+      else process.stdout.write(line);
     }
   }
   return failed ? 1 : 0;

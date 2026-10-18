@@ -4,6 +4,25 @@ TypeScript port of upstream's `run.py`, with upstream issue #3 fixed. Historical
 [BENCHMARK.md](BENCHMARK.md) and [results/final.jsonl](results/final.jsonl) are **upstream's macOS
 results** (aicodeking/leanrea@09ba4aa). This fork has not re-run them and makes no Linux performance claims.
 
+## Status: real agent runs are disabled
+
+`run.ts` refuses every runner except `fake` with an error pointing to
+[issue #2](https://github.com/ShreeMulay/leanrea/issues/2), even with `--isolated`. `--dry-run` still prints the
+exact plan (with `"real_run_disabled": true`), and the `fake` runner still exercises the harness in tests. The
+runner code is kept for the redesign. Reasons:
+
+- **The allowlist blocks the skill itself.** The `claude-code`/`opencode` runners pre-approve a short list of
+  command prefixes and deny everything else, but leanrea's first move is one batched shell call that uses
+  `grep`, `awk`, `sed`, `tr`, `sort`, braces and a background job. Those are denied, so the `leanrea` arm would be
+  measured with its own commands blocked.
+- **Real HOME and agent config leak in.** The env allowlist passes the real `HOME` (and XDG dirs for opencode),
+  so a run sees the operator's own skills, config, plugins and credentials. Arms are not comparable and a run
+  can read or change files outside the run dir.
+- **`--isolated` is an honor flag.** It records that you say you are in a disposable VM; the harness does not
+  create or verify any isolation.
+
+Until the redesign lands, this fork publishes no agent speed, cost or accuracy numbers.
+
 ## Files
 
 | file | what |
@@ -41,9 +60,8 @@ Keys were derived by static inspection only:
 
 ## Safety (upstream issue #3)
 
-- **Isolation is your job, and the harness fails closed.** Real agent runs refuse to start without
-  `--isolated` (or `LEANREA_BENCH_ISOLATED=1`). Pass it only inside a disposable VM or container
-  with no credentials you care about. `--dry-run` and the `fake` runner don't need it.
+- **Real runs are disabled** (see Status above). Before that, real agent runs refused to start without
+  `--isolated` (or `LEANREA_BENCH_ISOLATED=1`); that check is kept behind the new refusal.
 - **No blanket Bash.** The `claude-code` runner limits built-in tools with `--tools Bash,Read,Grep,Glob,Skill`,
   pre-approves only read-only inspection prefixes (`Bash(readelf:*)`, `Bash(nm:*)`, ...; see
   `CLAUDE_BASH_PREFIXES` in `runners.ts`), denies everything else with `--permission-mode dontAsk`, and
@@ -73,9 +91,7 @@ Keys were derived by static inspection only:
 npm ci && npm run build
 bench/setup.sh linux                                   # downloads the target, checks sha256
 node build/bench/run.js leanrea linux-rust 1 --dry-run # prints the plan, runs nothing
-# inside a disposable VM/container only:
-node build/bench/run.js leanrea linux-rust 1 --isolated
-REPS=3 bench/run_all.sh --isolated
+node build/bench/run.js leanrea linux-rust 1 --isolated # refused: real runs are disabled (issue #2)
 ```
 
 The macOS tasks need `bench/setup.sh macos` on a Mac with Notion.app and Homebrew `gh`; their keys match
