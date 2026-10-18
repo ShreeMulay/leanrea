@@ -1,0 +1,19 @@
+leanrea (ShreeMulay/leanrea), a Linux + macOS fork of aicodeking/leanrea.
+
+This fork is based on aicodeking/leanrea at commit
+09ba4aa0217f82cd880f855a60b877f59f39b22b, Copyright (c) 2026 AICodeKing,
+MIT License. Changes in this fork: Copyright (c) 2026 Shree Mulay, MIT License.
+
+The skill's router and gotchas were informed by REA (Reverse Engineer
+Anything), https://github.com/morluto/rea, by the morluto team. leanrea is
+not affiliated with REA.
+
+Build-time tooling (not redistributed):
+- tsc-rs 0.7.0 (MIT AND Apache-2.0, Theo Browne, https://github.com/pingdotgg/ts-rust)
+  compiles this package's TypeScript. It is a devDependency only; neither it
+  nor its platform binaries are included in the npm tarball or release assets.
+- typescript 7.1.0-dev.20261008.1 (Apache-2.0, Microsoft) is used only as the
+  reference compiler for the parity check.
+
+The bench's Linux target, @tsc-rs/linux-x64@0.7.0, is downloaded at setup
+time into a gitignored work directory and is not redistributed.
