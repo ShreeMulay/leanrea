@@ -73,12 +73,11 @@ E1, Electron IPC surface, then channel names:
 rg -n -o -uu --glob '!node_modules' '.{0,120}(ipcMain\.(handle|handleOnce|on|once)|ipcRenderer\.(invoke|send|sendSync|on)|contextBridge\.exposeIn(Main|Isolated)World|webPreferences|preload:|nodeIntegration|contextIsolation|sandbox|\.node\b).{0,160}' "$X" | head -100
 rg -uu -o '"[a-z]+:[a-z0-9:-]+"' "$X/MAIN.js" | sort -u | head -200
 ```
-N1, one function. Linux: NAME as `nm -C` prints it. macOS (`--macho` names stubs): as plain `nm` prints it (`_f`, `__ZN...`):
+N1, one function. Linux: NAME as `nm -C` prints it. macOS (otool names stubs): as plain `nm` prints it (`_f`, `__ZN...`):
 ```sh
 F='NAME'; objdump -d --no-show-raw-insn -C --disassemble="$F" "$T" | grep -E '^ *[0-9a-f]+:' | head -150
-F='NAME'; objdump --macho -d --no-show-raw-insn --dis-symname="$F" "$T" | head -150
+otool -tV "$T" | F='NAME' awk '/^[^[:space:]].*:$/{if(p)exit; p=($0==ENVIRON["F"]":");next} p' | head -150
 ```
-macOS fallback: N2's `otool -tV` dump, then its `F=` reader.
 N2, stripped or xrefs: dump once, match exact strings. macOS X: `symbol stub for: _connect`:
 ```sh
 objdump -d --no-show-raw-insn -C "$T" > "$D/dis.txt"  # macOS: otool -tV "$T" > "$D/dis.txt"

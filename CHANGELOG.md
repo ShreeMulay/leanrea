@@ -9,9 +9,9 @@
   Go/Rust section markers), imports, exports, a symbol count with a lookup hint, inferred language/libc hints,
   and two tiers of strings (paths/URLs/versions, then text) saved to `$D/strings.txt`. Every part tolerates a
   missing section or tool. Fixes the `grep -m9` cut-off that dropped `musl`.
-- N1: read one function by name (Linux: `objdump --disassemble=NAME` with the `nm -C` name; macOS: Xcode's
-  llvm-objdump in Mach-O mode, `objdump --macho -d --dis-symname=NAME` with the plain `nm` name, so calls show
-  `symbol stub for: _connect`; fallback: `otool -tV` plus the exact N2 reader). N2: the only full dump, for stripped binaries and cross-references,
+- N1: read one function by name (Linux: `objdump --disassemble=NAME` with the `nm -C` name; macOS: an exact
+  label slice of `otool -tV` with the plain `nm` name, so calls show `symbol stub for: _connect`; Xcode's
+  objdump labels stub calls relative to the nearest symbol and rejects `--dis-symname`). N2: the only full dump, for stripped binaries and cross-references,
   matched with exact strings, so `main` no longer matches `__libc_start_main` and names with regex
   metacharacters work.
 - Removed the advice to always dump the full disassembly. Small blocks use `grep -E` instead of `rg`; `rg -uu`
@@ -19,7 +19,7 @@
   structured metadata is seen.
 - Frontmatter: `license: MIT`, `compatibility`, `metadata` (`opencode/slash: "true"` for `/leanrea` in the
   OpenCode TUI, `version`). `lint:skill` checks the name regex, description <= 1024, compatibility <= 500 and
-  `metadata.version` == package.json version. Size 10215/10240 bytes; every router row kept.
+  `metadata.version` == package.json version. Size 10173/10240 bytes; every router row kept.
 
 Local probe of the Linux first move (Linux x86-64, binutils 2.42; best of 3 wall-clock runs; scratch = bytes
 left in `$D`; keys = the 11 Linux bench answer keys matched by one call's output on `tsc`). No agent was involved;

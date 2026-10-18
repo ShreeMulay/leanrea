@@ -61,7 +61,7 @@ try {
 if (!first.startsWith("T=./bin;")) fail("first move must start with T=./bin;");
 if (/objdump -d|otool -tV/.test(first)) fail("first move must not disassemble");
 const n1Line: string = n1[isMac ? 1 : 0] ?? "";
-if (!n1Line.startsWith("F='NAME';")) fail(`N1 line for ${process.platform} must start with F='NAME';`);
+if (!n1Line.includes("F='NAME'")) fail(`N1 line for ${process.platform} must set F='NAME'`);
 const [n2Dump, n2Xref, n2Func] = n2;
 if (!n2Dump || !n2Xref?.startsWith("X='<connect@plt>' ") || !n2Func?.startsWith("F='main' ")) fail("N2 block shape changed");
 const dumpCmd = isMac ? (/# macOS: (.+)$/.exec(n2Dump)?.[1] ?? fail("N2: no macOS dump command")) : n2Dump.replace(/\s+#.*$/, "");
@@ -126,26 +126,21 @@ function nmName(bin: string, needle: string, demangle: boolean): string {
 
 const insnCount = (s: string): number => s.split("\n").filter((l) => /^\s*[0-9a-f]+:?\s/.test(l)).length;
 
-/** macOS fallback documented under N1: N2's otool -tV dump, then its exact F= reader. */
+/** Diagnostic only: N2's otool -tV dump file plus its exact F= reader. */
 function otoolSlice(bin: string, name: string): Out {
   const d = mkdtempSync(join(tmp, "n1fb-"));
-  return sh(`T=${sq(bin)}; D=${sq(d)}; ${dumpCmd}; ${(n2Func ?? "").replace("F='main'", `F=${sq(name)}`)}`, "N1 macOS fallback");
+  return sh(`T=${sq(bin)}; D=${sq(d)}; ${dumpCmd}; ${(n2Func ?? "").replace("F='main'", `F=${sq(name)}`)}`, "N1 diagnostic");
 }
 
 function n1Run(bin: string, name: string, label: string, mustMatch?: RegExp): string {
-  const cmd = `T=${sq(bin)}; ${n1Line.replace("F='NAME';", `F=${sq(name)};`)}`;
+  const cmd = `T=${sq(bin)}; ${n1Line.replace("F='NAME'", `F=${sq(name)}`)}`;
   const r = sh(cmd, `N1 (${label})`);
   if (r.status !== 0) fail(`N1 (${label}) exited ${r.status}: ${r.err}`);
   const okInsns = insnCount(r.out) >= 3;
   const okMatch = mustMatch === undefined || mustMatch.test(r.out);
   if (!okInsns || !okMatch) {
-    const extra = isMac ? `\n--- otool fallback (diagnostic):\n${otoolSlice(bin, name).out}` : "";
+    const extra = isMac ? `\n--- otool dump + N2 reader (diagnostic):\n${otoolSlice(bin, name).out}` : "";
     fail(`N1 (${label}) ${okInsns ? `did not match ${mustMatch}` : "printed no instructions"} for ${name}:\n${r.out}${r.err}${extra}`);
-  }
-  if (isMac) {
-    const fb = otoolSlice(bin, name);
-    if (insnCount(fb.out) < 3 || (mustMatch !== undefined && !mustMatch.test(fb.out))) fail(`N1 macOS fallback (${label}) failed for ${name}:\n${fb.out}${fb.err}`);
-    console.log(`ok   N1 macOS fallback (otool -tV + exact reader) for ${name}: ${insnCount(fb.out)} instruction lines`);
   }
   return r.out;
 }
@@ -182,7 +177,7 @@ try {
     console.log("ok   C fixture: connect import, socket path string and leanrea_fixture_check symbol present");
 
     // 3. N1 on the C function and the demangled C++ method
-    // N1 names: Linux as `nm -C` prints them; macOS (--macho --dis-symname) as plain `nm` prints them.
+    // N1 names: Linux as `nm -C` prints them; macOS (otool -tV labels) as plain `nm` prints them.
     const cName = nmName(cBin, "leanrea_fixture_check", !isMac);
     const cDis = n1Run(cBin, cName, "C", /connect/);
     console.log(`ok   N1 ${cName}: ${insnCount(cDis)} instruction lines, calls connect`);
