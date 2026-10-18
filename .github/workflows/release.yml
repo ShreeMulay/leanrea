@@ -32,7 +32,10 @@ jobs:
             echo "tag $GITHUB_REF_NAME does not match package.json version v$version" >&2
             exit 1
           fi
-      - run: npm ci
+      # tsc-rs's postinstall only rewrites its launcher for speed; the JS launcher works without it.
+      - run: npm ci --ignore-scripts
+      - name: SKILL.md hash must be listed for this version (src/known-releases.ts)
+        run: npm run check-release -- "$GITHUB_REF_NAME"
       - run: npm run lint:skill
       - run: npm run build
       - run: npm test
@@ -47,7 +50,10 @@ jobs:
         working-directory: ${{ runner.temp }}/release
         run: |
           cp "$GITHUB_WORKSPACE/leanrea/SKILL.md" SKILL.md
-          sha256sum "leanrea-${GITHUB_REF_NAME#v}.tgz" SKILL.md > SHA256SUMS
+          # Stable name for .../releases/latest/download/leanrea.tgz (same bytes as the versioned tarball).
+          cp "leanrea-${GITHUB_REF_NAME#v}.tgz" leanrea.tgz
+          cmp "leanrea-${GITHUB_REF_NAME#v}.tgz" leanrea.tgz
+          sha256sum "leanrea-${GITHUB_REF_NAME#v}.tgz" leanrea.tgz SKILL.md > SHA256SUMS
           cat SHA256SUMS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: matrix.os == 'ubuntu-latest'
@@ -73,7 +79,9 @@ jobs:
         working-directory: release
         run: |
           test -f "leanrea-${GITHUB_REF_NAME#v}.tgz"
+          test -f leanrea.tgz
           test -f SKILL.md
+          cmp "leanrea-${GITHUB_REF_NAME#v}.tgz" leanrea.tgz
           sha256sum -c SHA256SUMS
       - name: Create release
         env:
@@ -85,5 +93,6 @@ jobs:
             --title "leanrea $GITHUB_REF_NAME" \
             --notes "See CHANGELOG.md. Install: npx https://github.com/$GITHUB_REPOSITORY/releases/download/$GITHUB_REF_NAME/leanrea-${GITHUB_REF_NAME#v}.tgz install" \
             "release/leanrea-${GITHUB_REF_NAME#v}.tgz" \
+            release/leanrea.tgz \
             release/SKILL.md \
             release/SHA256SUMS
