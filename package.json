@@ -1,0 +1,50 @@
+{
+  "name": "leanrea",
+  "version": "0.1.0",
+  "description": "Installer and printer for the leanrea reverse-engineering skill (Linux + macOS fork of aicodeking/leanrea).",
+  "type": "module",
+  "bin": {
+    "leanrea": "dist/cli.js"
+  },
+  "files": [
+    "dist/",
+    "leanrea/SKILL.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShreeMulay/leanrea.git"
+  },
+  "homepage": "https://github.com/ShreeMulay/leanrea#readme",
+  "bugs": {
+    "url": "https://github.com/ShreeMulay/leanrea/issues"
+  },
+  "keywords": [
+    "reverse-engineering",
+    "skill",
+    "agent-skill",
+    "opencode",
+    "claude-code",
+    "codex"
+  ],
+  "scripts": {
+    "clean": "node -e \"for (const d of ['dist','build']) require('node:fs').rmSync(d,{recursive:true,force:true})\"",
+    "build": "npm run -s clean && tsc-rs -p tsconfig.json && tsc-rs -p tsconfig.dev.json",
+    "test": "npm run -s build && node --test \"build/test/**/*.test.js\"",
+    "lint:skill": "npm run -s build && node build/scripts/lint-skill.js leanrea/SKILL.md",
+    "parity": "npm run -s build && node build/scripts/parity.js",
+    "smoke": "npm run -s build && node build/scripts/smoke.js",
+    "pack-test": "npm run -s build && node build/scripts/pack-test.js",
+    "bench": "npm run -s build && node build/bench/run.js"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "tsc-rs": "0.7.0",
+    "typescript": "7.1.0-dev.20261008.1"
+  }
+}
