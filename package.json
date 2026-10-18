@@ -1,6 +1,6 @@
 {
   "name": "leanrea",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Installer and printer for the leanrea reverse-engineering skill (Linux + macOS fork of aicodeking/leanrea).",
   "type": "module",
   "bin": {
