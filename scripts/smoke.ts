@@ -126,17 +126,26 @@ function nmName(bin: string, needle: string, demangle: boolean): string {
 
 const insnCount = (s: string): number => s.split("\n").filter((l) => /^\s*[0-9a-f]+:?\s/.test(l)).length;
 
-function n1Run(bin: string, name: string, label: string, rawNeedle: string): string {
+/** macOS fallback documented under N1: N2's otool -tV dump, then its exact F= reader. */
+function otoolSlice(bin: string, name: string): Out {
+  const d = mkdtempSync(join(tmp, "n1fb-"));
+  return sh(`T=${sq(bin)}; D=${sq(d)}; ${dumpCmd}; ${(n2Func ?? "").replace("F='main'", `F=${sq(name)}`)}`, "N1 macOS fallback");
+}
+
+function n1Run(bin: string, name: string, label: string, mustMatch?: RegExp): string {
   const cmd = `T=${sq(bin)}; ${n1Line.replace("F='NAME';", `F=${sq(name)};`)}`;
   const r = sh(cmd, `N1 (${label})`);
   if (r.status !== 0) fail(`N1 (${label}) exited ${r.status}: ${r.err}`);
-  if (insnCount(r.out) < 3) {
-    let extra = "";
-    if (isMac) {
-      const fb = sh(`otool -tV -p ${sq(nmName(bin, rawNeedle, false))} ${sq(bin)} | head -40`, "otool fallback");
-      extra = `\n--- otool fallback (diagnostic):\n${fb.out}${fb.err}`;
-    }
-    fail(`N1 (${label}) printed no instructions for ${name}:\n${r.out}${r.err}${extra}`);
+  const okInsns = insnCount(r.out) >= 3;
+  const okMatch = mustMatch === undefined || mustMatch.test(r.out);
+  if (!okInsns || !okMatch) {
+    const extra = isMac ? `\n--- otool fallback (diagnostic):\n${otoolSlice(bin, name).out}` : "";
+    fail(`N1 (${label}) ${okInsns ? `did not match ${mustMatch}` : "printed no instructions"} for ${name}:\n${r.out}${r.err}${extra}`);
+  }
+  if (isMac) {
+    const fb = otoolSlice(bin, name);
+    if (insnCount(fb.out) < 3 || (mustMatch !== undefined && !mustMatch.test(fb.out))) fail(`N1 macOS fallback (${label}) failed for ${name}:\n${fb.out}${fb.err}`);
+    console.log(`ok   N1 macOS fallback (otool -tV + exact reader) for ${name}: ${insnCount(fb.out)} instruction lines`);
   }
   return r.out;
 }
@@ -173,12 +182,12 @@ try {
     console.log("ok   C fixture: connect import, socket path string and leanrea_fixture_check symbol present");
 
     // 3. N1 on the C function and the demangled C++ method
-    const cName = nmName(cBin, "leanrea_fixture_check", true);
-    const cDis = n1Run(cBin, cName, "C", "leanrea_fixture_check");
-    if (!/connect/.test(cDis)) fail(`N1 (C): no call to connect in:\n${cDis}`);
+    // N1 names: Linux as `nm -C` prints them; macOS (--macho --dis-symname) as plain `nm` prints them.
+    const cName = nmName(cBin, "leanrea_fixture_check", !isMac);
+    const cDis = n1Run(cBin, cName, "C", /connect/);
     console.log(`ok   N1 ${cName}: ${insnCount(cDis)} instruction lines, calls connect`);
-    const cppName = nmName(cppBin, "Fixture::probe", true);
-    const cppDis = n1Run(cppBin, cppName, "C++", "probe");
+    const cppName = nmName(cppBin, isMac ? "7Fixture5probe" : "Fixture::probe", !isMac);
+    const cppDis = n1Run(cppBin, cppName, "C++");
     console.log(`ok   N1 ${cppName}: ${insnCount(cppDis)} instruction lines`);
 
     // 4. stripped copy: first move still works; N2 dump + exact xref finds connect via PLT/stub

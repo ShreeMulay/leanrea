@@ -1,0 +1,337 @@
+D=/home/dev/ai_projects/development/leanrea/m-node/leanrea.YLEVbA
+ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=a9b42ba41811e1291145304b7c278c5d3fbaca71, for GNU/Linux 3.2.0, with debug_info, not stripped, too many notes (256)
+--- ELF
+  Class:                             ELF64
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+ 0x0000000000000001 (NEEDED)             Shared library: [libdl.so.2]
+ 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libpthread.so.0]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]
+  GNU                  0x00000014	NT_GNU_BUILD_ID (unique build ID bitstring)	    Build ID: a9b42ba41811e1291145304b7c278c5d3fbaca71
+--- TOOLCHAIN (seen)
+ GCC: (GNU) 10.3.1 20210422 (Red Hat 10.3.1-1)
+ GCC: (GNU) 8.5.0 20210514 (Red Hat 8.5.0-28)
+.debug_info
+--- IMPORTS
+abort accept accept4 access acos acosh asin asinh __assert_fail atan atan2 atanh backtrace backtrace_symbols bind calloc cfmakeraw chdir chmod chown clearerr clock_getres clock_gettime close closedir closelog connect cos cosh __ctype_b_loc __ctype_tolower_loc __cxa_allocate_exception __cxa_atexit __cxa_bad_typeid __cxa_begin_catch __cxa_demangle __cxa_end_catch __cxa_free_exception __cxa_guard_acquire __cxa_guard_release __cxa_pure_virtual __cxa_rethrow __cxa_thread_atexit __cxa_throw div __divti3 dladdr dlclose dlerror dl_iterate_phdr dlopen dlsym dup2 dup3 __dynamic_cast epoll_create1 epoll_ctl epoll_pwait epoll_wait __errno_location eventfd execve execvp _exit exit exp expf fchmod fchmodat fchown fclose fcntl64 fdatasync fdopen feof ferror fflush fgets fileno floor fmod fopen64 fork fprintf fputc fputs fread free freeaddrinfo freeifaddrs fscanf fseek fstatfs64 fsync ftell ftruncate64 futimens fwrite __fxstat64 gai_strerror getaddrinfo getauxval getc getcontext getcwd getegid getentropy getenv geteuid getgid getgrgid_r getgrnam_r getgroups gethostbyname gethostname getifaddrs getnameinfo getpagesize getpeername getpid getppid getpriority getpwnam_r getpwuid_r getrandom getrlimit64 getrusage getservbyname getservbyport_r getsockname getsockopt gettimeofday getuid __gmon_start__ gmtime_r gnu_get_libc_version __gxx_personality_v0 if_indextoname if_nametoindex initgroups inotify_add_watch inotify_init1 inotify_rm_watch ioctl isalpha isatty __isoc99_sscanf isprint isspace iswspace _ITM_deregisterTMCloneTable _ITM_registerTMCloneTable kill lchown ldexp __libc_start_main link listen llround localtime localtime_r log log10 log2 _longjmp lrint lseek64 __lxstat __lxstat64 madvise makecontext malloc malloc_usable_size memchr memcmp memcpy memmove memrchr memset mkdir mkdtemp mkstemp64 mktime mlock mmap64 modf modff __modti3 mprotect mremap msync munmap nanosleep nearbyint nearbyintf nextafter nextafterf __once_proxy open open64 opendir openlog pathconf perror pipe2 pkey_alloc pkey_free pkey_get pkey_mprotect pkey_set poll __popcountdi2 posix_fadvise64 posix_memalign pow powf prctl pread64 printf pthread_attr_destroy pthread_attr_getstack pthread_attr_init pthread_attr_setdetachstate pthread_attr_setstacksize pthread_barrier_destroy pthread_barrier_init pthread_barrier_wait pthread_condattr_destroy pthread_condattr_init pthread_condattr_setclock pthread_cond_broadcast pthread_cond_destroy pthread_cond_init pthread_cond_signal pthread_cond_timedwait pthread_cond_wait pthread_create pthread_detach pthread_exit pthread_getaffinity_np pthread_getattr_np pthread_getname_np pthread_getschedparam pthread_getspecific pthread_join __pthread_key_create pthread_key_create pthread_key_delete pthread_kill pthread_mutexattr_destroy pthread_mutexattr_init pthread_mutexattr_settype pthread_mutex_destroy pthread_mutex_init pthread_mutex_lock pthread_mutex_trylock pthread_mutex_unlock pthread_once pthread_rwlock_destroy pthread_rwlock_init pthread_rwlock_rdlock pthread_rwlo
+--- EXPORTS
+0000000001fdf770 T a2d_ASN1_OBJECT
+0000000001fefd50 T a2i_ASN1_ENUMERATED
+0000000001fef9f0 T a2i_ASN1_INTEGER
+0000000001fefe80 T a2i_ASN1_STRING
+00000000021c1c10 T a2i_GENERAL_NAME
+00000000021c7eb0 T a2i_IPADDRESS
+00000000021c8230 T a2i_IPADDRESS_NC
+00000000028d2160 T AbslInternalGetFileMappingHint
+00000000028c5d50 W AbslInternalMutexYield
+00000000028d66c0 W AbslInternalPerThreadSemInit
+00000000028d66e0 W AbslInternalPerThreadSemPoke
+00000000028d66d0 W AbslInternalPerThreadSemPost
+00000000028d6730 W AbslInternalPerThreadSemWait
+00000000028c9070 W AbslInternalSleepFor
+00000000028cde40 W AbslInternalSpinLockDelay
+00000000028cde90 W AbslInternalSpinLockWake
+00000000021bb1b0 T ACCESS_DESCRIPTION_free
+00000000021badb0 T ACCESS_DESCRIPTION_it
+00000000021bb1e0 T ACCESS_DESCRIPTION_new
+0000000002587a00 T ada_can_parse
+0000000002587ad0 T ada_can_parse_with_base
+0000000002579e90 T ada_clear_hash
+0000000002576710 T ada_clear_port
+000000000257fbd0 T ada_clear_search
+0000000002576320 T ada_copy
+00000000025762c0 T ada_free
+0000000002576440 T ada_free_owned_string
+00000000025769f0 T ada_free_search_params
+0000000002577a60 T ada_free_search_params_entries_iter
+00000000025778a0 T ada_free_search_params_keys_iter
+0000000002577980 T ada_free_search_params_values_iter
+0000000002577740 T ada_free_strings
+00000000025769d0 T ada_get_components
+0000000002576540 T ada_get_hash
+00000000025765a0 T ada_get_host
+00000000025765f0 T ada_get_hostname
+00000000025766f0 T ada_get_host_type
+0000000002576460 T ada_get_href
+00000000025763c0 T ada_get_origin
+00000000025764c0 T ada_get_password
+0000000002576630 T ada_get_pathname
+0000000002576500 T ada_get_port
+00000000025766d0 T ada_get_protocol
+0000000002576700 T ada_get_scheme_type
+0000000002576670 T ada_get_search
+0000000002576480 T ada_get_username
+0000000002576800 T ada_has_credentials
+0000000002576830 T ada_has_empty_hostname
+0000000002576970 T ada_has_hash
+0000000002576890 T ada_has_hostname
+00000000025768f0 T ada_has_non_empty_password
+00000000025768d0 T ada_has_non_empty_username
+0000000002576950 T ada_has_password
+0000000002576910 T ada_has_port
+00000000025769a0 T ada_has_search
+000000000257ec40 T ada_idna_to_ascii
+000000000257bd40 T ada_idna_to_unicode
+00000000025763b0 T ada_is_valid
+0000000002588060 T ada_parse
+000000000257ae30 T ada_parse_search_params
+00000000025880a0 T ada_parse_with_base
+0000000002578320 T ada_search_params_append
+0000000002577b20 T ada_search_params_entries_iter_has_next
+0000000002577a80 T ada_search_params_entries_iter_next
+00000000025773f0 T ada_search_params_get
+00000000025783c0 T ada_search_params_get_all
+00000000025776e0 T ada_search_params_get_entries
+0000000002577620 T ada_search_params_get_keys
+0000000002577680 T ada_search_params_get_values
+00000000025771a0 T ada_search_params_has
+0000000002577b70 T ada_search_params_has_value
+0000000002577930 T ada_search_params_keys_iter_has_next
+00000000025778c0 T ada_search_params_keys_iter_next
+0000000002576ae0 T ada_search_params_remove
+0000000002578530 T ada_search_params_remove_value
+000000000257acd0 T ada_search_params_reset
+0000000002580d40 T ada_search_params_set
+0000000002576ac0 T ada_search_params_size
+000000000258b1f0 T ada_search_params_sort
+000000000257cc60 T ada_search_params_to_string
+--- HINTS (inferred)
+musl GLIBC_2.28 
+--- SYMBOLS: 133704 (find: nm -C "$T" | grep -F NAME)
+--- STRINGS (signals)
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+0.0.0.0
+0.0.23
+(0) == (inflateInit_((&strm), "1.3.1", (int)sizeof(z_stream)))
+  100: 'Continue',                   // RFC 7231 6.2.1
+  // 100 (Continue)    RFC7231 Section 6.2.1
+  101: 'Switching Protocols',        // RFC 7231 6.2.2
+    // 10.2.4.1 ThrowTypeError
+12.4.254.21-node.57
+127.0.0.1
+1.2.840.10045.2.1
+1.3.0.1-motley
+1.3.1-e00f703
+1.34.8
+1.51.0
+1.69.0
+    // 19.2.6 URI Handling Functions
+// [1]: https://url.spec.whatwg.org/#forbidden-host-code-point
+        // - 2001:db8:85a3::192.0.2.128-2001:db8:85a3::192.0.2.129 (mixed)
+        // - 2001:db8:85a3::192.0.2.128/64 (mixed)
+        // - 2001:db8:85a3::192.0.2.128 (mixed)
+  200: 'OK',                         // RFC 7231 6.3.1
+  201: 'Created',                    // RFC 7231 6.3.2
+  202: 'Accepted',                   // RFC 7231 6.3.3
+  203: 'Non-Authoritative Information', // RFC 7231 6.3.4
+  204: 'No Content',                 // RFC 7231 6.3.5
+  205: 'Reset Content',              // RFC 7231 6.3.6
+2.16.840.1.101.3.4.3.17
+2.16.840.1.101.3.4.3.18
+2.16.840.1.101.3.4.3.19
+22.23.3
+    // 22.2.7 RegExpStringIteratorPrototype
+  226: 'IM Used',                    // RFC 3229 10.4.1
+    // 24.1.5 MapIteratorPrototype
+    // 24.2.5 SetIteratorPrototype
+    // 27.1.3 AsyncIteratorPrototype
+  300: 'Multiple Choices',           // RFC 7231 6.4.1
+  301: 'Moved Permanently',          // RFC 7231 6.4.2
+  302: 'Found',                      // RFC 7231 6.4.3
+  303: 'See Other',                  // RFC 7231 6.4.4
+  305: 'Use Proxy',                  // RFC 7231 6.4.5
+  307: 'Temporary Redirect',         // RFC 7231 6.4.7
+3.51.3
+.%.-.3.7.9.?.W.[.o.y.
+  400: 'Bad Request',                // RFC 7231 6.5.1
+  402: 'Payment Required',           // RFC 7231 6.5.2
+  403: 'Forbidden',                  // RFC 7231 6.5.3
+  404: 'Not Found',                  // RFC 7231 6.5.4
+  405: 'Method Not Allowed',         // RFC 7231 6.5.5
+  406: 'Not Acceptable',             // RFC 7231 6.5.6
+  408: 'Request Timeout',            // RFC 7231 6.5.7
+  409: 'Conflict',                   // RFC 7231 6.5.8
+  410: 'Gone',                       // RFC 7231 6.5.9
+  411: 'Length Required',            // RFC 7231 6.5.10
+  413: 'Payload Too Large',          // RFC 7231 6.5.11
+  414: 'URI Too Long',               // RFC 7231 6.5.12
+  415: 'Unsupported Media Type',     // RFC 7231 6.5.13
+  417: 'Expectation Failed',         // RFC 7231 6.5.14
+  418: 'I\'m a Teapot',              // RFC 7168 2.3.3
+  421: 'Misdirected Request',        // RFC 7540 9.1.2
+  426: 'Upgrade Required',           // RFC 2817 and RFC 7231 6.5.15
+  500: 'Internal Server Error',      // RFC 7231 6.6.1
+  501: 'Not Implemented',            // RFC 7231 6.6.2
+  502: 'Bad Gateway',                // RFC 7231 6.6.3
+  503: 'Service Unavailable',        // RFC 7231 6.6.4
+  504: 'Gateway Timeout',            // RFC 7231 6.6.5
+  505: 'HTTP Version Not Supported', // RFC 7231 6.6.6
+6.28.1
+  // 8.1.5.1 Event handlers - basically `on[eventName]` attributes
+8.16.0
+abort@@GLIBC_2.2.5
+accept@@GLIBC_2.2.5
+access@@GLIBC_2.2.5
+acos@@GLIBC_2.2.5
+acosh@@GLIBC_2.2.5
+activate inspector on host:port (default: 127.0.0.1:9229)
+      address = '0.0.0.0';
+      address = (family === 'ipv4' ? '127.0.0.1' : '::'),
+  *   'Address: IPv4 10.0.0.5',
+AES-128-CBC:AES128:2.16.840.1.101.3.4.1.2
+--- STRINGS (text)
+CSpD pKPnG3~
+call staH3W
+any timeH
+any timeH
+all arguH
+pshot obH
+eap snapH
+ heap prH
+pshot obf
+when pro
+files fof
+ not enaH
+ not enaH
+ not enaH
+value exA
+alue expI
+art byteI
+ map endI
+eral expI
+key expaI9
+GF(2^m) Multiplication for x86_64, CRYPTOGAMS by <appro@openssl.org>
+Montgomery Multiplication for x86_64, CRYPTOGAMS by <appro@openssl.org>
+Camellia for x86_64 by <appro@openssl.org>
+X25519 primitives for x86_64, CRYPTOGAMS by <appro@openssl.org>
+SHA1 block transform for x86_64, CRYPTOGAMS by <appro@openssl.org>
+VIA Padlock x86_64 module, CRYPTOGAMS by <appro@openssl.org>
+ady exisI
+value exA
+alue expI
+art byteI
+ map endI
+eral expI
+basic_string::_M_construct null not valid
+cannot create std::vector larger than max_size()
+virtual node::AsyncResource::~AsyncResource()
+node::AsyncResource::AsyncResource(v8::Isolate*, v8::Local<v8::Object>, const char*, node::async_id)
+T* node::Realloc(T*, size_t) [with T = v8::Local<v8::Value>; size_t = long unsigned int]
+T node::MultiplyWithOverflowCheck(T, T) [with T = long unsigned int]
+void node::InternalCallbackScope::Close()
+void node::EmbedderSnapshotData::DeleteSnapshotData::operator()(const node::EmbedderSnapshotData*) const
+node::EmbedderSnapshotData::Pointer node::CommonEnvironmentSetup::CreateSnapshot()
+std::string node::SPrintFImpl(std::string_view)
+Failed to initialize loop: %s
+v8::Local<v8::Value> node::Encode(v8::Isolate*, const char*, std::size_t, node::encoding)
+node::encoding node::ParseEncoding(v8::Isolate*, v8::Local<v8::Value>, node::encoding)
+Accessing Object.prototype.__proto__ has been disallowed with --disable-proto=throw
+node::MutexBase<Traits>::MutexBase() [with Traits = node::LibuvMutexTraits]
+void node::AddLinkedBinding(node::Environment*, const node::node_module&)
+"Unreachable code reached" ": " "invalid --disable-proto mode"
+void node::DebuggingArrayBufferAllocator::RegisterPointerInternal(void*, std::size_t)
+void node::DebuggingArrayBufferAllocator::UnregisterPointerInternal(void*, std::size_t)
+virtual node::DebuggingArrayBufferAllocator::~DebuggingArrayBufferAllocator()
+v8::Local<v8::Value> node::UVException(v8::Isolate*, int, const char*, const char*, const char*, const char*)
+v8::Local<v8::Value> node::ErrnoException(v8::Isolate*, int, const char*, const char*, const char*)
+node::async_context node::EmitAsyncInit(v8::Isolate*, v8::Local<v8::Object>, v8::Local<v8::String>, node::async_id)
+void node::RemoveEnvironmentCleanupHook(v8::Isolate*, node::CleanupHook, void*)
+void node::AddEnvironmentCleanupHook(v8::Isolate*, node::CleanupHook, void*)
+void node::AtExit(node::Environment*, void (*)(void*), void*)
+void node::Environment::DecreaseWaitingRequestCounter()
+void node::CleanupQueue::Add(node::CleanupQueue::Callback, void*)
+static void node::AsyncWrap::EmitAsyncInit(node::Environment*, v8::Local<v8::Object>, v8::Local<v8::String>, double, double)
+void node::AsyncWrap::AsyncReset(v8::Local<v8::Object>, double)
+void node::AsyncWrap::EmitTraceEventDestroy()
+static void node::AsyncWrap::QueueDestroyAsyncId(const v8::FunctionCallbackInfo<v8::Value>&)
+static void node::AsyncWrap::AsyncReset(const v8::FunctionCallbackInfo<v8::Value>&)
+void node::RegisterDestroyHook(const v8::FunctionCallbackInfo<v8::Value>&)
+void node::SetupHooks(const v8::FunctionCallbackInfo<v8::Value>&)
+static void node::AsyncWrap::EmitTraceEventAfter(node::AsyncWrap::ProviderType, double)
+void node::AsyncWrap::EmitTraceEventBefore()
+void node::IsolateData::set_async_wrap_ctor_template(v8::Local<v8::FunctionTemplate>)
+"Unreachable code reached"
+void node::BaseObject::decrease_refcount()
+static void node::BaseObject::LazilyInitializedJSTemplateConstructor(const v8::FunctionCallbackInfo<v8::Value>&)
+virtual node::BaseObject::~BaseObject()
+void node::MemoryTracker::Track(const node::MemoryRetainer*, const char*)
+node::MemoryRetainerNode::MemoryRetainerNode(node::MemoryTracker*, const node::MemoryRetainer*)
+cannot create std::deque larger than max_size()
+Invalid IPv6 address
+There are pending queries.
+Cannot specify two IPv4 addresses.
+Cannot specify two IPv6 addresses.
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::SoaTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::NaptrTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::PtrTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::SrvTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::TxtTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::TlsaTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::NsTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::MxTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::CnameTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::CaaTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::AaaaTraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::ATraits]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::AnyTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::TxtTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::TlsaTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::SoaTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::SrvTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::PtrTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::NsTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::NaptrTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::MxTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::CnameTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::CaaTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::AaaaTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::AnyTraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::ATraits]
+node::cares_wrap::QueryWrap<Traits>::~QueryWrap() [with Traits = node::cares_wrap::ReverseTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::ChannelWrap; bool kIsWeak = false]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::ReqWrap<uv_getnameinfo_s>; bool kIsWeak = false]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::ReqWrap<uv_getaddrinfo_s>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::ParseError(int) [with Traits = node::cares_wrap::ReverseTraits]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::SoaTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::SoaTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::NaptrTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::NaptrTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::PtrTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::PtrTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::SrvTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::SrvTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::TxtTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::TxtTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::TlsaTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::TlsaTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::NsTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::NsTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::MxTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::MxTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::CnameTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::CnameTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::CaaTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::CaaTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::AaaaTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::AaaaTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::ATraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::ATraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::AnyTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::AnyTraits>; bool kIsWeak = false]
+void node::cares_wrap::QueryWrap<Traits>::AfterResponse() [with Traits = node::cares_wrap::ReverseTraits]
+node::BaseObjectPtrImpl<T, kIsWeak>::BaseObjectPtrImpl(T*) [with T = node::cares_wrap::QueryWrap<node::cares_wrap::ReverseTraits>; bool kIsWeak = false]
+T* node::Malloc(size_t) [with T = hostent; size_t = long unsigned int]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::SoaTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::NaptrTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::PtrTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::SrvTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::TxtTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::TlsaTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::NsTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::MxTraits]
+void* node::cares_wrap::QueryWrap<Traits>::MakeCallbackPointer() [with Traits = node::cares_wrap::CnameTraits]

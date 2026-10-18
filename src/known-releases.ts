@@ -13,7 +13,7 @@ import { createHash } from "node:crypto";
  */
 export const KNOWN_RELEASES: Readonly<Record<string, string>> = Object.freeze({
   "0.1.0": "b339328030986eacb37d3dde96383699ae23e3cbcc8835631505b17bf79306d6",
-  "0.2.0": "58515f4326ff0ef09c9cfd38e643431837a3e638282c235fd1d903d64a39149e",
+  "0.2.0": "ace54fe4b20973bfc1d96108e86a66def73ae41ea1ccee2e3ddbcd29e04d0c24",
 });
 
 /**
