@@ -41,6 +41,7 @@
     "parity": "npm run -s build && node build/scripts/parity.js",
     "smoke": "npm run -s build && node build/scripts/smoke.js",
     "pack-test": "npm run -s build && node build/scripts/pack-test.js",
+    "check-release": "npm run -s build && node build/scripts/check-release.js",
     "bench": "npm run -s build && node build/bench/run.js"
   },
   "devDependencies": {

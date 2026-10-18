@@ -9,6 +9,7 @@ import { spawnSync, type SpawnSyncOptions } from "node:child_process";
 import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { KNOWN_RELEASES, sha256 } from "../src/known-releases.js";
 import { findPackage } from "../src/skill.js";
 
 const pkg = findPackage();
@@ -62,10 +63,10 @@ try {
   const files = entry.files.map((f) => f.path).sort();
   console.log(`packed ${entry.filename}: ${files.join(", ")}`);
   const allowed = (f: string): boolean =>
-    ["package.json", "leanrea/SKILL.md", "LICENSE", "README.md"].includes(f) || /^dist\/[a-z-]+\.js$/.test(f);
+    ["package.json", "leanrea/SKILL.md", "LICENSE", "NOTICE", "README.md"].includes(f) || /^dist\/[a-z-]+\.js$/.test(f);
   const extra = files.filter((f) => !allowed(f));
   if (extra.length) fail(`unexpected files in tarball: ${extra.join(", ")}`);
-  for (const must of ["package.json", "leanrea/SKILL.md", "LICENSE", "README.md", "dist/cli.js"]) {
+  for (const must of ["package.json", "leanrea/SKILL.md", "LICENSE", "NOTICE", "README.md", "dist/cli.js", "dist/known-releases.js"]) {
     if (!files.includes(must)) fail(`tarball is missing ${must}`);
   }
   if (files.some((f) => /test/.test(f))) fail("tarball contains test files");
@@ -105,6 +106,22 @@ try {
   if (!existsSync(dest) || !readFileSync(dest).equals(skill)) fail(`installed file at ${dest} differs from SKILL.md`);
   const again = run(["install", "--agent", "opencode", "--global"]);
   if (!/already up to date/.test(again.out)) fail(`second install not up to date: ${again.out}`);
+
+  // 4. upgrade a v0.1.0 install (the released bytes, kept as a test fixture) without --force
+  const v010 = readFileSync(join(pkg.root, "test", "fixtures", "releases", "0.1.0", "SKILL.md"));
+  if (sha256(v010) !== KNOWN_RELEASES["0.1.0"]) fail("test/fixtures/releases/0.1.0/SKILL.md is not the released 0.1.0 file");
+  const ccDest = join(home, ".claude", "skills", "leanrea", "SKILL.md");
+  mkdirSync(dirname(ccDest), { recursive: true });
+  writeFileSync(ccDest, v010);
+  const up = run(["install", "--agent", "claude-code", "--global"]);
+  console.log(`upgrade from 0.1.0: ${up.out.trim()}`);
+  if (!/upgraded: upgraded .* from leanrea 0\.1\.0/.test(up.out)) fail(`expected an upgrade from 0.1.0: ${up.out}`);
+  if (!readFileSync(ccDest).equals(skill)) fail("upgraded file differs from SKILL.md");
+  const edited = Buffer.concat([v010, Buffer.from("\nlocal edit\n")]);
+  writeFileSync(ccDest, edited);
+  const refused = sh(bin, ["install", "--agent", "claude-code", "--global"], { cwd: scratch, env: runEnv, allowFail: true });
+  if (refused.status !== 1 || !readFileSync(ccDest).equals(edited)) fail(`an edited 0.1.0 file must be refused without --force: ${refused.out}`);
+  console.log("edited 0.1.0 copy: refused without --force, left untouched");
 
   const outDir = process.env.LEANREA_PACK_OUT;
   if (outDir) {

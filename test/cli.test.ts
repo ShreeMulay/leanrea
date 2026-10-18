@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import { AGENTS, type Agent, installOne, type InstallEnv } from "../src/installer.js";
+import { KNOWN_RELEASES, sha256 } from "../src/known-releases.js";
 import { PKG, run, type Sandbox, sandbox, tree } from "./helpers.js";
 
 const SKILL = readFileSync(PKG.skillPath);
+const V010 = readFileSync(join(PKG.root, "test", "fixtures", "releases", "0.1.0", "SKILL.md"));
 
 function expectedDest(sb: Sandbox, agent: Agent, scope: "global" | "project"): string {
   const rel = join("skills", "leanrea", "SKILL.md");
@@ -197,10 +199,37 @@ describe("install: flags", () => {
 });
 
 describe("install: --agent all", () => {
-  it("installs every agent", () => {
+  it("writes the Claude Code and Codex dirs only (OpenCode reads both)", () => {
     const r = run(sb, ["install", "--agent", "all"]);
     assert.equal(r.status, 0, r.out);
-    for (const a of AGENTS) assert.ok(readFileSync(expectedDest(sb, a, "global")).equals(SKILL));
+    assert.ok(readFileSync(expectedDest(sb, "claude-code", "global")).equals(SKILL));
+    assert.ok(readFileSync(expectedDest(sb, "codex", "global")).equals(SKILL));
+    assert.equal(existsSync(join(sb.xdg, "opencode")), false, "--agent all must not write the OpenCode dir");
+    assert.doesNotMatch(r.out, /opencode \(global\)/);
+  });
+
+  it("project scope writes .claude and .agents only", () => {
+    const r = run(sb, ["install", "--agent", "all", "--project"]);
+    assert.equal(r.status, 0, r.out);
+    assert.ok(existsSync(expectedDest(sb, "claude-code", "project")));
+    assert.ok(existsSync(expectedDest(sb, "codex", "project")));
+    assert.equal(existsSync(join(sb.proj, ".opencode")), false);
+  });
+
+  it("upgrades a known-old OpenCode-dir copy and warns about an unknown one", () => {
+    const oc = expectedDest(sb, "opencode", "global");
+    mkdirSync(join(oc, ".."), { recursive: true });
+    writeFileSync(oc, V010);
+    const r = run(sb, ["install", "--agent", "all"]);
+    assert.equal(r.status, 0, r.out);
+    assert.ok(readFileSync(oc).equals(SKILL));
+    assert.match(r.out, /upgraded .* from leanrea 0\.1\.0 \(also read by opencode\)/);
+
+    writeFileSync(oc, "my own skill\n");
+    const r2 = run(sb, ["install", "--agent", "all"]);
+    assert.equal(r2.status, 0, r2.out);
+    assert.match(r2.stderr, /warning: .*opencode.*not a known release/);
+    assert.equal(readFileSync(oc, "utf8"), "my own skill\n");
   });
 
   it("reports partial failure per agent and exits non-zero", () => {
@@ -209,12 +238,132 @@ describe("install: --agent all", () => {
     writeFileSync(blocked, "different\n");
     const r = run(sb, ["install", "--agent", "all"]);
     assert.equal(r.status, 1);
-    assert.match(r.out, /opencode \(global\): installed/);
     assert.match(r.out, /claude-code \(global\): refused/);
     assert.match(r.out, /codex \(global\): installed/);
-    assert.ok(readFileSync(expectedDest(sb, "opencode", "global")).equals(SKILL));
     assert.ok(readFileSync(expectedDest(sb, "codex", "global")).equals(SKILL));
     assert.equal(readFileSync(blocked, "utf8"), "different\n");
+  });
+});
+
+describe("install: known releases", () => {
+  it("the 0.1.0 fixture is the released file", () => {
+    assert.equal(sha256(V010), KNOWN_RELEASES["0.1.0"]);
+  });
+
+  it("upgrades a known release without --force", () => {
+    const dest = expectedDest(sb, "claude-code", "global");
+    mkdirSync(join(dest, ".."), { recursive: true });
+    writeFileSync(dest, V010);
+    const r = run(sb, ["install", "--agent", "claude-code"]);
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.out, /claude-code \(global\): upgraded: upgraded .* from leanrea 0\.1\.0/);
+    assert.ok(readFileSync(dest).equals(SKILL));
+    assert.deepEqual(tree(join(dest, "..")), ["SKILL.md"], "temp files left behind");
+  });
+
+  it("refuses a modified known release without --force", () => {
+    const dest = expectedDest(sb, "codex", "global");
+    mkdirSync(join(dest, ".."), { recursive: true });
+    const edited = Buffer.concat([V010, Buffer.from("\n- my local rule\n")]);
+    writeFileSync(dest, edited);
+    const r = run(sb, ["install", "--agent", "codex"]);
+    assert.equal(r.status, 1);
+    assert.match(r.out, /not a known leanrea release \(use --force\)/);
+    assert.ok(readFileSync(dest).equals(edited));
+  });
+
+  it("dry run reports would-upgrade and writes nothing", () => {
+    const dest = expectedDest(sb, "opencode", "global");
+    const cc = expectedDest(sb, "claude-code", "global");
+    for (const d of [dest, cc]) {
+      mkdirSync(join(d, ".."), { recursive: true });
+      writeFileSync(d, V010);
+    }
+    const before = [tree(sb.home), tree(sb.xdg)];
+    const r = run(sb, ["install", "--dry-run"]);
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.out, /opencode \(global\): would-upgrade/);
+    assert.match(r.out, /other copy \(read by opencode\): would-upgrade: .*\.claude/);
+    assert.deepEqual([tree(sb.home), tree(sb.xdg)], before);
+    assert.ok(readFileSync(dest).equals(V010));
+    assert.ok(readFileSync(cc).equals(V010));
+  });
+
+  it("conflicting copies: known-old upgraded, unknown warned, exit 0", () => {
+    const cc = expectedDest(sb, "claude-code", "global");
+    const cx = expectedDest(sb, "codex", "global");
+    for (const d of [cc, cx]) mkdirSync(join(d, ".."), { recursive: true });
+    writeFileSync(cc, V010);
+    writeFileSync(cx, "someone else's leanrea\n");
+    const r = run(sb, ["install", "--agent", "opencode"]);
+    assert.equal(r.status, 0, r.out);
+    assert.ok(readFileSync(expectedDest(sb, "opencode", "global")).equals(SKILL));
+    assert.ok(readFileSync(cc).equals(SKILL), "known-old copy was not upgraded");
+    assert.match(r.stdout.toString(), /upgraded .*\.claude.* from leanrea 0\.1\.0 \(also read by opencode\)/);
+    assert.equal(readFileSync(cx, "utf8"), "someone else's leanrea\n");
+    assert.match(r.stderr, /warning: .*\.agents.*not a known release/);
+    assert.doesNotMatch(r.stdout.toString(), /warning/);
+  });
+
+  it("does not scan dirs the selected agent doesn't read", () => {
+    const oc = expectedDest(sb, "opencode", "global");
+    mkdirSync(join(oc, ".."), { recursive: true });
+    writeFileSync(oc, V010);
+    const r = run(sb, ["install", "--agent", "codex"]);
+    assert.equal(r.status, 0, r.out);
+    assert.ok(readFileSync(oc).equals(V010));
+  });
+
+  it("a symlinked duplicate is warned about, never followed", () => {
+    const victim = join(sb.outside, "victim.md");
+    writeFileSync(victim, V010);
+    const cc = expectedDest(sb, "claude-code", "global");
+    mkdirSync(join(cc, ".."), { recursive: true });
+    symlinkSync(victim, cc);
+    const r = run(sb, ["install"]);
+    assert.equal(r.status, 0, r.out);
+    assert.match(r.stderr, /not a regular file/);
+    assert.ok(readFileSync(victim).equals(V010));
+  });
+
+  it("refuses when the file changes between the check and the rename", () => {
+    const env: InstallEnv = { home: sb.home, cwd: sb.proj, path: sb.bin };
+    const dest = expectedDest(sb, "codex", "global");
+    mkdirSync(join(dest, ".."), { recursive: true });
+    writeFileSync(dest, V010);
+    const res = installOne({ label: "x", dest }, SKILL, env, {
+      dryRun: false,
+      force: false,
+      beforeCommit: (d) => writeFileSync(d, "edited concurrently\n"),
+    });
+    assert.equal(res.status, "refused", res.message);
+    assert.match(res.message, /changed while upgrading/);
+    assert.equal(readFileSync(dest, "utf8"), "edited concurrently\n");
+    assert.deepEqual(tree(join(dest, "..")), ["SKILL.md"], "temp file left behind");
+
+    writeFileSync(dest, V010);
+    const victim = join(sb.outside, "v.md");
+    writeFileSync(victim, "keep\n");
+    const res2 = installOne({ label: "x", dest }, SKILL, env, {
+      dryRun: false,
+      force: false,
+      beforeCommit: (d) => {
+        unlinkSync(d);
+        symlinkSync(victim, d);
+      },
+    });
+    assert.equal(res2.status, "refused", res2.message);
+    assert.equal(readFileSync(victim, "utf8"), "keep\n");
+  });
+
+  it("chezmoi-managed known release is still refused", () => {
+    const dest = expectedDest(sb, "claude-code", "global");
+    mkdirSync(join(dest, ".."), { recursive: true });
+    writeFileSync(dest, V010);
+    const r = run(sb, ["install", "--agent", "claude-code"], { env: { FAKE_CHEZMOI_MANAGED: join(sb.home, ".claude") } });
+    assert.equal(r.status, 1);
+    assert.match(r.out, /managed by chezmoi/);
+    assert.ok(readFileSync(dest).equals(V010));
   });
 });
 

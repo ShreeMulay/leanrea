@@ -15,6 +15,7 @@ import {
   writeSync,
 } from "node:fs";
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { knownReleaseOf, sha256 } from "./known-releases.js";
 
 export const AGENTS = ["opencode", "claude-code", "codex"] as const;
 export type Agent = (typeof AGENTS)[number];
@@ -31,9 +32,12 @@ export interface InstallEnv {
 export type InstallStatus =
   | "installed"
   | "overwritten"
+  | "upgraded"
   | "up-to-date"
   | "would-install"
   | "would-overwrite"
+  | "would-upgrade"
+  | "warning"
   | "refused"
   | "error";
 
@@ -54,6 +58,8 @@ export interface InstallTarget {
 export interface InstallOptions {
   dryRun: boolean;
   force: boolean;
+  /** Test hook: runs after the temp file is written, before the final re-check and rename. */
+  beforeCommit?: ((dest: string) => void) | undefined;
 }
 
 export function isAgent(x: string): x is Agent {
@@ -78,6 +84,18 @@ export function destinationFor(agent: Agent, scope: Scope, env: InstallEnv): str
     case "codex":
       return join(env.home, ".agents", ...rel);
   }
+}
+
+/** Agents that read each skills dir, per OpenCode, Claude Code and Codex docs (see README). */
+export function discoveryPaths(scope: Scope, env: InstallEnv): Array<{ dest: string; readers: Agent[] }> {
+  const oc = destinationFor("opencode", scope, env);
+  const cc = destinationFor("claude-code", scope, env);
+  const cx = destinationFor("codex", scope, env);
+  return [
+    { dest: oc, readers: ["opencode"] },
+    { dest: cc, readers: ["claude-code", "opencode"] },
+    { dest: cx, readers: ["codex", "opencode"] },
+  ];
 }
 
 function isInside(parent: string, child: string, allowEqual = false): boolean {
@@ -166,10 +184,6 @@ export function chezmoiManages(dest: string, pathEnv: string): boolean {
   return r.status === 0;
 }
 
-function sameBytes(file: string, data: Buffer): boolean {
-  return readFileSync(file).equals(data);
-}
-
 function fsyncDir(dir: string): void {
   let fd: number | undefined;
   try {
@@ -228,12 +242,17 @@ export function installOne(target: InstallTarget, data: Buffer, env: InstallEnv,
 
     const st = lstatOrNull(dest);
     if (st && !st.isFile()) return r("refused", `refusing: destination exists and is not a regular file: ${dest}`);
-    if (st && sameBytes(dest, data)) return r("up-to-date", `already up to date: ${dest}`);
-    if (st && !opts.force) {
-      return r("refused", `refusing to overwrite a different existing file (use --force): ${dest}`);
+    const existing = st ? readFileSync(dest) : null;
+    if (existing?.equals(data)) return r("up-to-date", `already up to date: ${dest}`);
+    const oldRelease = existing ? knownReleaseOf(existing) : undefined;
+    if (existing && oldRelease === undefined && !opts.force) {
+      return r("refused", `refusing to overwrite a different existing file that is not a known leanrea release (use --force): ${dest}`);
     }
     if (opts.dryRun) {
-      return st ? r("would-overwrite", `dry run: would overwrite ${dest}`) : r("would-install", `dry run: would install ${dest}`);
+      if (!existing) return r("would-install", `dry run: would install ${dest}`);
+      return oldRelease !== undefined
+        ? r("would-upgrade", `dry run: would upgrade ${dest} from leanrea ${oldRelease}`)
+        : r("would-overwrite", `dry run: would overwrite ${dest}`);
     }
 
     const dir = dirname(dest);
@@ -244,7 +263,18 @@ export function installOne(target: InstallTarget, data: Buffer, env: InstallEnv,
 
     const tmp = writeTemp(dir, data);
     try {
-      if (opts.force) {
+      opts.beforeCommit?.(dest);
+      if (existing && !opts.force) {
+        // Upgrade of a known release: re-check right before the atomic rename so a
+        // concurrent change (edit, replacement, symlink) fails closed.
+        const bad3 = check();
+        if (bad3) return bad3;
+        const now = lstatOrNull(dest);
+        if (!now || !now.isFile() || now.ino !== st?.ino || now.dev !== st?.dev || sha256(readFileSync(dest)) !== sha256(existing)) {
+          return r("refused", `refusing: ${dest} changed while upgrading; nothing was written (re-run to retry)`);
+        }
+        renameSync(tmp, dest);
+      } else if (opts.force) {
         renameSync(tmp, dest);
       } else {
         // Exclusive: link() fails with EEXIST instead of clobbering.
@@ -269,6 +299,7 @@ export function installOne(target: InstallTarget, data: Buffer, env: InstallEnv,
       safeUnlink(tmp);
     }
     fsyncDir(dir);
+    if (oldRelease !== undefined) return r("upgraded", `upgraded ${dest} from leanrea ${oldRelease}`);
     return st ? r("overwritten", `overwrote ${dest}`) : r("installed", `installed ${dest}`);
   } catch (e) {
     return r("error", `error: ${(e as Error).message}`);
@@ -277,4 +308,61 @@ export function installOne(target: InstallTarget, data: Buffer, env: InstallEnv,
 
 export function isFailure(res: InstallResult): boolean {
   return res.status === "refused" || res.status === "error";
+}
+
+/**
+ * After installing, look at the other skills dirs the selected agents also read.
+ * OpenCode reads its own dir, ~/.claude/skills and ~/.agents/skills (and the
+ * project equivalents) and keeps whichever duplicate it scans last, so a stale
+ * copy can shadow the new one. Known older releases are upgraded the same safe
+ * way as targets; anything else is reported and left alone. Never deletes.
+ * Results here are never failures: refusals become warnings.
+ */
+export function consistencyCheck(
+  agents: readonly Agent[],
+  scope: Scope,
+  env: InstallEnv,
+  data: Buffer,
+  targetDests: readonly string[],
+  opts: InstallOptions,
+): InstallResult[] {
+  const out: InstallResult[] = [];
+  const targets = new Set(targetDests.map((d) => resolve(env.cwd, d)));
+  for (const { dest, readers } of discoveryPaths(scope, env)) {
+    const by = readers.filter((a) => agents.includes(a));
+    const abs = resolve(env.cwd, dest);
+    if (by.length === 0 || targets.has(abs)) continue;
+    const label = `other copy (read by ${by.join(", ")})`;
+    const warn = (message: string): InstallResult => ({ label, dest: abs, status: "warning", message });
+    let st: ReturnType<typeof lstatSync> | null;
+    try {
+      st = lstatOrNull(abs);
+    } catch (e) {
+      out.push(warn(`warning: cannot inspect ${abs}: ${(e as Error).message}`));
+      continue;
+    }
+    if (!st) continue;
+    if (!st.isFile()) {
+      out.push(warn(`warning: ${abs} exists but is not a regular file (symlink or other); left untouched`));
+      continue;
+    }
+    const bytes = readFileSync(abs);
+    if (bytes.equals(data)) {
+      out.push({ label, dest: abs, status: "up-to-date", message: `up to date: ${abs}` });
+      continue;
+    }
+    if (knownReleaseOf(bytes) === undefined) {
+      out.push(
+        warn(
+          `warning: ${abs} differs from this leanrea and is not a known release; ${by.join(", ")} may load it instead of the new copy. Left untouched (re-run with --dest "${abs}" --force to replace it).`,
+        ),
+      );
+      continue;
+    }
+    const res = installOne({ label, dest: abs, containWithin: scope === "project" ? env.cwd : undefined }, data, env, { ...opts, force: false });
+    if (res.status === "upgraded") out.push({ ...res, message: `${res.message} (also read by ${by.join(", ")})` });
+    else if (isFailure(res)) out.push({ ...res, status: "warning", message: `warning: ${res.message}` });
+    else out.push(res);
+  }
+  return out;
 }
