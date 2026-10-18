@@ -36,13 +36,13 @@ npx skills add ShreeMulay/leanrea
 **2. Release tarball** (this repo's installer; zero runtime dependencies, no npm registry publish, Node >= 22.12):
 
 ```sh
-npx https://github.com/ShreeMulay/leanrea/releases/download/v0.2.0/leanrea-0.2.0.tgz install
+npx https://github.com/ShreeMulay/leanrea/releases/download/v0.2.1/leanrea-0.2.1.tgz install
 ```
 
 That installs for OpenCode at user level. Other forms:
 
 ```sh
-TGZ=https://github.com/ShreeMulay/leanrea/releases/download/v0.2.0/leanrea-0.2.0.tgz
+TGZ=https://github.com/ShreeMulay/leanrea/releases/download/v0.2.1/leanrea-0.2.1.tgz
 npx "$TGZ" install --agent claude-code            # or codex, or all
 npx "$TGZ" install --agent opencode --project     # into ./.opencode/skills/
 npx "$TGZ" install --dest /some/dir/SKILL.md      # exact path
@@ -61,7 +61,7 @@ serving a newer tarball at the same URL still ran the first one from the npx cac
 ```sh
 mkdir -p ~/.claude/skills/leanrea
 curl -fsSLo ~/.claude/skills/leanrea/SKILL.md \
-  https://github.com/ShreeMulay/leanrea/releases/download/v0.2.0/SKILL.md
+  https://github.com/ShreeMulay/leanrea/releases/download/v0.2.1/SKILL.md
 ```
 
 If an agent has no skills support, paste `leanrea/SKILL.md` into its rules or system prompt; it is plain text.
@@ -70,12 +70,13 @@ If an agent has no skills support, paste `leanrea/SKILL.md` into its rules or sy
 
 | agent | how to invoke |
 |---|---|
-| OpenCode | `/leanrea How does the search feature in ./foo work?` (the frontmatter sets `metadata: opencode/slash: "true"`, which adds `/leanrea` to the TUI), or just ask; the agent loads skills by description. |
+| OpenCode v1 | `/leanrea How does the search feature in ./foo work?` (the legacy v1 frontmatter key `metadata: opencode/slash: "true"` adds `/leanrea` to the TUI), or just ask; the agent loads skills by description. |
+| OpenCode v2 | `@leanrea How does the search feature in ./foo work?`, or just ask and let the model select it by description. V2 ignores `opencode/slash` ([OpenCode v2 skills docs](https://opencode.ai/v2/docs/skills)). |
 | Claude Code | `/leanrea How does the search feature in ./foo work?`, or just ask. |
 | Codex | Ask, or name the skill in your prompt (`use the leanrea skill to ...`). Codex reads `~/.agents/skills` and selects skills by description; see the Codex skills docs for explicit invocation. |
 
-The frontmatter also carries `license`, `compatibility` (tools needed) and `metadata.version`. Claude Code accepts
-and ignores those fields.
+The frontmatter also carries `license`, `compatibility` (tools needed) and `metadata.version`. Claude Code and
+OpenCode v2 accept and ignore those fields.
 
 ### Agent destinations
 
@@ -98,10 +99,17 @@ Agents change these paths over time; if yours differs, use `--dest`.
   [`src/known-releases.ts`](src/known-releases.ts)), `install` replaces it without `--force` and reports
   `upgraded`. A file that differs from every release (for example one you edited) is refused unless you pass
   `--force`. `--dry-run` reports `would-upgrade`.
-- **Duplicates.** OpenCode finds skills in three dirs and, when more than one has a `leanrea`, keeps whichever
-  copy it scans last, without a warning. So after installing, `install` also looks at the other dirs the selected
+- **Duplicates.** OpenCode reads several skills dirs and loads only one `leanrea`. OpenCode v2 loads the copy
+  from the source registered latest, in this order (lowest to highest precedence): built-in skills <
+  `.claude/skills` (global, then project ancestors toward the current directory) < `.agents/skills` (same order) <
+  `~/.config/opencode/skills` < project `.opencode/skills` < config `skills` entries
+  ([docs](https://opencode.ai/v2/docs/skills)). OpenCode v1's [docs](https://opencode.ai/docs/skills/) only say
+  skill names must be unique across all locations; with duplicates, v1 keeps whichever copy it scans last, without a
+  warning (observed behavior, not documented). So after installing, `install` also looks at the other dirs the selected
   agents read: an older released copy there is upgraded the same safe way (`upgraded ... (also read by opencode)`);
-  any other copy gets a warning on stderr with its path and is left alone. Nothing is ever deleted.
+  any other copy gets a warning on stderr with its path and is left alone. Nothing is ever deleted. This check
+  covers the global dirs and the current directory's project dirs only: it does not look at ancestor project
+  directories or at `skills` entries in OpenCode config.
 - **Exit code.** 0 when every target is installed, upgraded or up to date, even with warnings about other
   copies; 1 when a target was refused or failed; 2 for usage errors.
 
@@ -152,13 +160,18 @@ npm run parity       # tsc-rs vs the reference compiler, see below
 npm run smoke        # golden smoke: compiles C/C++ fixtures and runs the SKILL.md blocks on them, then on ls
 npm run pack-test    # npm pack, install offline into an isolated prefix, exercise the bin, upgrade a 0.1.0 copy
 npm run check-release  # the version is listed in src/known-releases.ts with SKILL.md's sha256
+npm run check-tree   # every tracked file is on the allowlist in scripts/check-tree.ts and <= 128 KiB
 ```
 
-`npm run smoke` extracts the native first move and blocks N1/N2 from `SKILL.md` itself, compiles
-`test/fixtures/native/fixture.c` and `fixture.cpp` with `cc`/`c++`, and checks that the first move reports the
-`connect` import, the socket path string and the `leanrea_fixture_check` symbol; that N1 shows the call to
-`connect` and disassembles the demangled C++ method; that a stripped copy still works and N2 finds the `connect`
-call through the PLT/stub; and that nothing is written to the current directory.
+`npm run smoke` extracts every command it runs from `SKILL.md` itself. It compiles `test/fixtures/native/fixture.c`
+and `fixture.cpp` with `cc`/`c++` and checks that the first move reports the `connect` import, the socket path
+string and the `leanrea_fixture_check` symbol; that N1 shows the call to `connect` and disassembles the C++ method;
+that a stripped copy still works and N2 finds the `connect` call through the PLT/stub; and, on Linux, that a
+`-fno-plt` build is found by the `<connect@` xref and, stripped, by the GOT-slot hint. It packs a tiny Electron app
+with the pinned `@electron/asar`, copies `app.asar` with `app.asar.unpacked/`, and runs the Electron first move and
+E1 on the copy. If `go` is installed, it builds a Go fixture and runs G1 with `go` removed from `PATH`. Nothing may
+be written to the current directory. Offline, the Electron check is skipped (and the Go check without `go`); CI sets
+`LEANREA_SMOKE_REQUIRE_NETWORK=1` and, on Ubuntu, `LEANREA_SMOKE_REQUIRE_GO=1` so those skips fail instead.
 
 **Why parity:** tsc-rs 0.7.0 is pinned to microsoft/TypeScript commit `fed0bf24`, which is exactly the commit of
 npm `typescript@7.1.0-dev.20261008.1`. `npm run parity` compiles every tsconfig (plus a fixture with deliberate

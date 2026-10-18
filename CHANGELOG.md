@@ -1,6 +1,41 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.1 (unreleased)
+
+### Repository
+- Removed 36.6 MB of accidentally committed local measurement files (`first.sh`, `m-ls/`, `m-node/`, `m-tsc/`,
+  `mo-*.txt`: first-move output and extracted strings of public binaries). They are still present in git history
+  and the v0.2.0 tag; no secrets. They were never in the npm tarball or release assets.
+- New `npm run check-tree` (CI and release): every tracked file must match an explicit allowlist and be
+  <= 128 KiB.
+
+### Skill
+- Electron: copy `app.asar` together with `app.asar.unpacked/`; `asar extract` reads unpacked files from beside
+  the archive and fails without them. The first move's `exposeInMainWorld` search uses `grep -rlF`.
+- E1 channel names accept single or double quotes (`'demo:ping'` was missed).
+- G1 line 2 uses the system `nm` (`grep -E ' _?main\.'`, Mach-O adds `_`) instead of `go tool nm`, so it works
+  without the Go toolchain; note that stripped Go keeps names only in `.gopclntab`.
+- N2: the xref selector is `X='<connect@'` (matches `<connect@plt>` and `<connect@GLIBC_...>`), plus a GOT-slot
+  hint for stripped `-fno-plt` x86-64 ELF (`objdump -R`, then `# <addr>` in dis.txt).
+- HINTS: `go1\.[0-9]+(\.[0-9]+)?` instead of `go1\.[0-9.]+`.
+- Dropped the intro line and compressed the Install section to stay under 10240 bytes (10235).
+
+### Tests and CI
+- Golden smoke: `-fno-plt` fixture (unstripped xref and stripped GOT slot, Linux); Electron app packed with the
+  pinned `@electron/asar`, copied with `app.asar.unpacked/`, then the Electron first move and E1 (also asserts that
+  `app.asar` alone doesn't extract); Go fixture with G1 run on a `PATH` without `go`. Network and Go skips become
+  failures with `LEANREA_SMOKE_REQUIRE_NETWORK=1` / `LEANREA_SMOKE_REQUIRE_GO=1`, which CI sets.
+- CI: required ubuntu-24.04 and macos-latest x Node 22/24, plus an advisory ubuntu-26.04 / Node 22 job;
+  `actions/setup-go` (SHA-pinned) on Ubuntu; release builds on ubuntu-24.04 and macos-latest. Dependabot for
+  GitHub Actions (weekly).
+
+### Bench and docs
+- `bench/ctx.sh` exits 1 with the issue #2 message before creating anything or starting a process (tested).
+- README: OpenCode v1 `/leanrea` (legacy `opencode/slash` metadata) vs v2 `@leanrea` or automatic selection;
+  v2 duplicate precedence; the installer's duplicate check doesn't cover ancestor project dirs or config `skills`
+  entries; install URLs for v0.2.1.
+
+## 0.2.0 (2026-10-18)
 
 ### Skill
 - One native first move for Linux (binutils) and macOS (Xcode Command Line Tools). It no longer

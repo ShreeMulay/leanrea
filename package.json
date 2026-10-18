@@ -1,6 +1,6 @@
 {
   "name": "leanrea",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Installer and printer for the leanrea reverse-engineering skill (Linux + macOS fork of aicodeking/leanrea).",
   "type": "module",
   "bin": {
@@ -42,6 +42,7 @@
     "smoke": "npm run -s build && node build/scripts/smoke.js",
     "pack-test": "npm run -s build && node build/scripts/pack-test.js",
     "check-release": "npm run -s build && node build/scripts/check-release.js",
+    "check-tree": "npm run -s build && node build/scripts/check-tree.js",
     "bench": "npm run -s build && node build/bench/run.js"
   },
   "devDependencies": {

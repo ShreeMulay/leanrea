@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
@@ -7,6 +8,9 @@ import { grade } from "../bench/grader.js";
 import { type CellOptions, loadTasks, runCell, runProcess } from "../bench/run.js";
 import { claudeCode, fake, opencode, parseClaudeStream, parseOpencodeJson, type RunContext } from "../bench/runners.js";
 import { filterEnv, safeRemove, sanitize } from "../bench/safety.js";
+import { PKG } from "./helpers.js";
+
+const PKG_ROOT = PKG.root;
 
 const tasks = loadTasks();
 const key = (id: string): Record<string, string> => {
@@ -277,5 +281,27 @@ describe("runCell with the fake runner", () => {
     const r = await runProcess(process.execPath, ["-e", "process.exit(3)"], { cwd: root, env: {}, stdin: null, timeoutMs: 10_000 });
     assert.equal(r.exit, 3);
     assert.equal(r.timedOut, false);
+  });
+});
+
+describe("bench/ctx.sh", () => {
+  it("refuses before creating anything or starting claude", () => {
+    const bin = join(root, "bin");
+    const work = join(root, "work");
+    const marker = join(root, "claude-ran");
+    mkdirSync(bin);
+    mkdirSync(work);
+    writeFileSync(join(bin, "claude"), `#!/bin/sh\ntouch '${marker}'\necho '{}'\n`, { mode: 0o755 });
+    writeFileSync(join(bin, "jq"), `#!/bin/sh\ntouch '${marker}'\n`, { mode: 0o755 });
+    const r = spawnSync("bash", [join(PKG_ROOT, "bench", "ctx.sh")], {
+      cwd: root,
+      env: { PATH: `${bin}:/usr/bin:/bin`, HOME: root, LEANREA_WORK: work },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    assert.notEqual(r.status, 0);
+    assert.match(r.stderr, /disabled.*leanrea\/issues\/2/);
+    assert.equal(existsSync(marker), false, "claude (or jq) was started");
+    assert.deepEqual(readdirSync(work), [], "ctx.sh created something under LEANREA_WORK");
   });
 });
