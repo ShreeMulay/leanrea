@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2317  # unreachable on purpose: the script exits early until issue #2 is fixed
 # Context overhead probe (Claude Code): one "Reply with exactly OK." per config; prints context tokens and cost.
 # Calls a paid agent. Run only in a disposable VM/container. No tool is pre-approved (dontAsk).
+# DISABLED until the bench is redesigned (issue #2): refuse before touching anything.
+echo "ctx.sh: real agent runs are disabled until the bench is redesigned (https://github.com/ShreeMulay/leanrea/issues/2): it calls a paid agent with the real HOME and agent config." >&2
+exit 1
+# The probe below is kept for the redesign.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd -P)"
 W="${LEANREA_WORK:-$here/work}"

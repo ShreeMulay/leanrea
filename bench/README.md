@@ -6,7 +6,7 @@ results** (aicodeking/leanrea@09ba4aa). This fork has not re-run them and makes 
 
 ## Status: real agent runs are disabled
 
-`run.ts` refuses every runner except `fake` with an error pointing to
+`run.ts` refuses every runner except `fake`, and `ctx.sh` exits before doing anything, with an error pointing to
 [issue #2](https://github.com/ShreeMulay/leanrea/issues/2), even with `--isolated`. `--dry-run` still prints the
 exact plan (with `"real_run_disabled": true`), and the `fake` runner still exercises the harness in tests. The
 runner code is kept for the redesign. Reasons:
@@ -34,7 +34,7 @@ Until the redesign lands, this fork publishes no agent speed, cost or accuracy n
 | `safety.ts` | Output sanitizer, env allowlist, scoped `safeRemove`. |
 | `setup.sh` | Prepares the work root (`linux` or `macos`, optional `--with-rea`). |
 | `run_all.sh` | All tasks x arms x `REPS` for this platform. |
-| `ctx.sh` | Context-overhead probe (Claude Code). |
+| `ctx.sh` | Context-overhead probe (Claude Code). Disabled: exits 1 with the issue #2 message before creating anything or starting a process. |
 | `mcp_list.py` | Upstream tool that sizes an MCP server's `tools/list` (REA). Unchanged. |
 
 ## Linux task set
