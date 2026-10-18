@@ -17,7 +17,10 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-24.04, macos-latest]
+    env:
+      LEANREA_SMOKE_REQUIRE_NETWORK: "1"
+      LEANREA_SMOKE_REQUIRE_GO: ${{ startsWith(matrix.os, 'ubuntu') && '1' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -25,6 +28,11 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        if: startsWith(matrix.os, 'ubuntu')
+        with:
+          go-version: stable
+          cache: false
       - name: Tag must equal v + package.json version
         run: |
           version="$(node -p "require('./package.json').version")"
@@ -36,6 +44,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: SKILL.md hash must be listed for this version (src/known-releases.ts)
         run: npm run check-release -- "$GITHUB_REF_NAME"
+      - run: npm run check-tree
       - run: npm run lint:skill
       - run: npm run build
       - run: npm test
@@ -46,7 +55,7 @@ jobs:
         env:
           LEANREA_PACK_OUT: ${{ runner.temp }}/release
       - name: Collect release assets
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         working-directory: ${{ runner.temp }}/release
         run: |
           cp "$GITHUB_WORKSPACE/leanrea/SKILL.md" SKILL.md
@@ -56,7 +65,7 @@ jobs:
           sha256sum "leanrea-${GITHUB_REF_NAME#v}.tgz" leanrea.tgz SKILL.md > SHA256SUMS
           cat SHA256SUMS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-24.04'
         with:
           name: release-assets
           path: ${{ runner.temp }}/release/
